@@ -1,9 +1,9 @@
 import os
+import time
 
-# TOKEN = "<token here>"
 TOKEN = os.environ["token"]
 CHANNELS = {
-    # "powdertoy@TPT": 311697121914912768
 }
-REQUEST_DELAY = 0.2
-DATABASE_FILE="db.json"
+REQUEST_DELAY = os.environ.get("request_delay", 0)
+FAILED_REQUEST_DELAY = os.environ.get("failed_request_delay", 0)
+DATABASE_FILE = os.environ.get("db_file", f"dumps/{time.strftime("%Y%m%d-%H%M%S")}.json")
