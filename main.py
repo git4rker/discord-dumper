@@ -19,7 +19,9 @@ for channel_name, channel_id in config.CHANNELS.items():
         Channel(channel_name, channel_id, api)
     )
 
-    if db.count(Query()["channel_id"] == str(channels[-1].id)) == 0:
+    msg_n = db.count(Query()["channel_id"] == str(channels[-1].id))
+
+    if msg_n == 0:
         continue
 
     last_msg = max(
@@ -27,8 +29,8 @@ for channel_name, channel_id in config.CHANNELS.items():
         key = lambda x: x["timestamp"]
     )
 
-    channels[-1].last_msg = messages[0]["id"]
-    channels[-1].msg_counter = len(messages)
+    channels[-1].last_msg = last_msg["id"]
+    channels[-1].msg_counter = msg_n
 
     print(f"Restored channel {channel_name}.")
 
@@ -51,7 +53,6 @@ while True:
         while True:
             try:
                 messages = channel.update()
-                # print("m")
             except Exception as e:
                 print(f"An exception occurred: {e}; retrying...")
                 time.sleep(config.FAILED_REQUEST_DELAY)

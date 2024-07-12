@@ -12,10 +12,7 @@ class Channel:
         self.api = api
 
     def update(self):
-        if self.last_msg == None:
-            messages = self.api.fetch_messages(self.id, limit=100)
-        else:
-            messages = self.api.fetch_messages(self.id, before=self.last_msg, limit=100)
+        messages = self.api.fetch_messages(self.id, before=self.last_msg, limit=100)
 
         msg_n = len(messages)
         self.msg_counter += msg_n
