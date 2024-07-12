@@ -24,7 +24,7 @@ for channel_name, channel_id in config.CHANNELS.items():
     if msg_n == 0:
         continue
 
-    last_msg = max(
+    last_msg = min(
         db.search(Query()["channel_id"] == str(channels[-1].id)),
         key = lambda x: x["timestamp"]
     )
