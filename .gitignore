@@ -1,5 +1,6 @@
 __pycache__/
 .env/
-dumps/
+dumps/*
+dumps_done/*
 dump.sh
 config.py

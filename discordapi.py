@@ -3,9 +3,8 @@ import urllib
 import time
 
 class API:
-    def __init__(self, token, fail_delay):
+    def __init__(self, token):
         self.token = token
-        self.fail_delay = fail_delay
 
     def _raw_request_channels(self, method: str, channel_id: int, section: str, params: dict = {}):
         method_table = {
@@ -18,21 +17,13 @@ class API:
 
         url = f"https://discord.com/api/v9/channels/{channel_id}/{section}?{urllib.parse.urlencode(params)}"
 
-        while True:
-            try:
-                resp = method_table[method.upper()](url, headers={
-                    "Authorization": self.token
-                })
-            except OSError as e:
-                print(f"{e}; waiting {self.fail_delay}s and retrying request...")
-                time.sleep(self.fail_delay)
-                continue
-            break
+        resp = method_table[method.upper()](url, headers={
+            "Authorization": self.token
+        })
 
         resp.raise_for_status()
 
         return resp.json()
-        
 
     def fetch_messages(self, channel_id, limit, before=None, after=None):
         params = {
