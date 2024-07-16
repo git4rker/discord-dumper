@@ -1,0 +1,12 @@
+{
+    "token": "[token here]",
+    "storage": {
+        "path": "[path to storage directory here]",
+        "db_name": "[database name]"
+    },
+    "channels": [
+        357673249309589516,
+        860960627060899880,
+        ...
+    ]
+}
