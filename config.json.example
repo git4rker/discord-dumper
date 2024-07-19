@@ -1,8 +1,8 @@
 {
-    "token": "[token here]",
-    "storage": {
-        "path": "[path to storage directory here]",
-        "db_name": "[database name]"
+    "token": "[discord token]",
+    "mongo": {
+        "uri": "[mongodb uri]",
+        "db": "[database name]"
     },
     "channels": [
         357673249309589516,

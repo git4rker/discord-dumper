@@ -1,6 +1,6 @@
 from channel import Channel
 from discordapi import API
-from montydb import MontyClient, set_storage
+from pymongo import MongoClient
 from config import Config
 import signal
 import sys
@@ -8,15 +8,8 @@ import time
 
 config = Config.load(sys.argv[1] if len(sys.argv) > 1 else "config.json")
 api = API(config["token"])
-
-set_storage(
-    repository=config["storage"]["path"],
-    storage="sqlite", # it looks like flat-file loads the entire DB into memory for operation :skull:
-    journal_mode="WAL",
-    check_same_thread=False
-)
-db_client = MontyClient(config["storage"]["path"])
-db = db_client[config["storage"]["db_name"]]
+db_client = MongoClient(config["mongo"]["uri"])
+db = db_client[config["mongo"]["db"]]
 
 def safe_exit():
     print("Exiting safely. Please wait...")
@@ -30,39 +23,32 @@ signal.signal(signal.SIGINT, signal_handler)
 
 for channel_id in config["channels"]:
     channel = Channel(channel_id, api)
-    channel_pers = db.channels.find_one(
-        {"id": channel.id}
+    persistence = db.persistence.find_one(
+        { "id": channel.id }
     )
-    n_msg_total = 0
 
-    if channel_pers != None:
-        channel.last_message_id = channel_pers["last_message_id"]
-        n_msg_total = channel_pers["n_msg_total"]
-
-    print(f"Restored channel {channel.object["name"]} from database")
-
+    if persistence != None:
+        channel.restore(persistence)
+        channel.n_msg = db.messages.count_documents({"channel_id": str(channel.id)})
+        print(f"Restored channel {channel.object["name"]} from database")
+    
     while True:
         try:
-            messages = channel.get_messages()
+            n_msg, messages = channel.get_messages()
         except Exception as e:
             print(f"An exception occured: {e}. Retrying...")
             continue
 
-        n_msg = len(messages)
+        print(f"{channel.object["name"]}: {n_msg} messages dumped; {channel.n_msg} total")
 
         if n_msg == 0:
             break
 
-        n_msg_total += n_msg
-
-        print(f"{channel.object["name"]}: {n_msg} messages dumped; {n_msg_total} total")
-
         db.messages.insert_many(messages)
-        db.channels.update_one(
-            {"id": channel.id},
+        db.persistence.update_one(
+            { "id": channel.id },
             {"$set": {
-                "last_message_id": channel.last_message_id,
-                "n_msg_total": n_msg_total
+                "last_message_id": channel.last_message_id
             }},
             True
         )
